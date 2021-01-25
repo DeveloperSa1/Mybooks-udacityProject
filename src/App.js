@@ -2,16 +2,12 @@ import React from "react";
 import * as BooksAPI from "./API/BooksApi";
 import { Route, Link } from "react-router-dom";
 import "./App.css";
-import _ from "lodash";
 import Shelves from "./Components/Shelves";
 import Search from "./Components/Search";
 
 class BooksApp extends React.Component {
   state = {
     books: [],
-    searchedBooks: [],
-    query: "",
-    
   };
 
   fetchAll = async () => {
@@ -38,34 +34,6 @@ class BooksApp extends React.Component {
     }));
   };
 
-// debounce fn to prevent issue when clearing the input field
-  onChange = (event) => {
-    event.persist();
-
-    if (!this.debouncedFn) {
-      this.debouncedFn = _.debounce(() => {
-        let searchString = event.target.value;
-        this.updateQuery(searchString);
-      }, 500);
-    }
-    this.debouncedFn();
-  };
-  updateQuery = async (q) => {
-    this.setState({ query: q });
-
-    try {
-      if (q === "") {
-        this.setState({ searchedBooks: [] });
-      } else {
-        const results = await BooksAPI.search(q);
-        const books = (await results.error) ? [] : results;
-        this.setState({searchedBooks:books});
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
   componentDidMount() {
     this.fetchAll();
   }
@@ -78,25 +46,18 @@ class BooksApp extends React.Component {
           <div className="list-books-title">
             <h1>MyReads</h1>
           </div>
-          <Route
-            exact
-            path="/"
-            render={() => (
-              <Shelves books={books} updateShelf={this.getBookUpdadted} />
-            )}
-          />
+          <Route exact path="/">
+            <Shelves books={books} updateShelf={this.getBookUpdadted} />
+          </Route>
 
-          <Route
-            exact
-            path="/search"
-            render={() => (
-              <Search
-                onSearch={this.onChange}
-                searchedBooks={searchedBooks}
-                updateShelf={this.getBookUpdadted}
-              />
-            )}
-          />
+          <Route exact path="/search">
+            <Search
+              books={books}
+              onSearch={this.onChange}
+              searchedBooks={searchedBooks}
+              updateShelf={this.getBookUpdadted}
+            />
+          </Route>
 
           <div className="open-search">
             <Link to="/search">Add a book</Link>
@@ -106,5 +67,8 @@ class BooksApp extends React.Component {
     );
   }
 }
+
+
+
 
 export default BooksApp;

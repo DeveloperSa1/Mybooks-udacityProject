@@ -1,9 +1,44 @@
 import React from "react";
+import * as BooksAPI from "../API/BooksApi";
+import _ from "lodash";
+import Book from "./Book";
 import { Link } from "react-router-dom";
 
 class Search extends React.Component {
+  state = {
+    searchedBooks: [],
+    query: "",
+  };
+
+  // debounce fn to prevent issue when clearing the input field
+  onChange = _.debounce((event) => {
+    let searchString = event.target.value;
+    this.updateQuery(searchString);
+  }, 500);
+
+  updateQuery = async (q) => {
+    this.setState({ query: q });
+
+    try {
+      if (q === "") {
+        this.setState({ searchedBooks: [] });
+      } else {
+        const results = await BooksAPI.search(q);
+        const books = (await results.error) ? [] : results;
+        this.setState({ searchedBooks: books });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   render() {
-    const { updateShelf, onSearch, searchedBooks } = this.props;
+    const { updateShelf, books } = this.props;
+    const { searchedBooks } = this.state;
+    const getBookShelf = (book) => {
+      return books?.find((item) => item.id === book.id)?.shelf ?? "none";
+    };
+
     return (
       <div className="search-books">
         <div className="search-books-bar">
@@ -12,7 +47,7 @@ class Search extends React.Component {
           </Link>
           <div className="search-books-input-wrapper">
             <input
-              onChange={onSearch}
+              onChange={this.onChange}
               type="text"
               placeolder="Search by title or author"
             />
@@ -22,40 +57,17 @@ class Search extends React.Component {
           <ol className="books-grid">
             {searchedBooks &&
               searchedBooks.map((book) => (
-                <li key={book.id}>
-                  <div className="book">
-                    <div className="book-top">
-                      <img
-                        src={
-                          book.imageLinks === undefined
-                            ? ""
-                            : book.imageLinks.thumbnail
-                        }
-                        alt=""
-                      />
-
-                      <div className="book-shelf-changer">
-                        <select
-                          name="shelf"
-                          onChange={(e) => updateShelf(e, book)}
-                          value={book.shelf}
-                        >
-                          <option value="none" disabled>
-                            Move to...
-                          </option>
-                          <option value="none">None</option>
-                          <option value="currentlyReading">
-                            Currently Reading
-                          </option>
-                          <option value="wantToRead">Want to Read</option>
-                          <option value="read">Read</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="book-title">{book.title}</div>
-                    <div className="book-authors">{book.authors}</div>
-                  </div>
-                </li>
+                
+                  <Book
+                    book={book}
+                    key={book.id}
+                    img={book.imageLinks}
+                    updateShelf={updateShelf}
+                    shelf={getBookShelf(book)}
+                    title={book.title}
+                    authors={book.authors}
+                  />
+                  
               ))}
           </ol>
         </div>
@@ -63,5 +75,7 @@ class Search extends React.Component {
     );
   }
 }
+
+
 
 export default Search;
