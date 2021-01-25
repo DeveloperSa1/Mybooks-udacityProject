@@ -4,10 +4,14 @@ This is a project for Udacity's React Nanodegree program. The aim of this projec
 
 My Reads allows you to search for books using specific search terms (found in SEARCH_TERMS.md). The books are stored in one of three bookshelves:
 
-Currently Reading
-Want to Read
-Read
-None (If you want to remove a book from a shelf)
+* Currently Reading
+
+* Want to Read
+
+* Read
+
+* None (If you want to remove a book from a shelf)
+
 The backend is provided by and run by Udacity.
 
 
